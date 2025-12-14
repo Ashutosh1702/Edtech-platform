@@ -136,11 +136,7 @@ function CourseFooter({ course, details }) {
               </li>
               <li>
                 <button
-                  onClick={() =>
-                    navigate("/register", {
-                      state: { from: `/course/${course.id}` },
-                    })
-                  }
+                  onClick={() => navigate("/checkout", { state: { course } })}
                   className="text-slate-400 hover:text-white transition-colors"
                 >
                   Enroll Now

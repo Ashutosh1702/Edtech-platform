@@ -57,34 +57,12 @@ const handleEnroll = async () => {
       return alert("Please login first.");
     }
 
-    // Prefer resolved serverCourse id, then original _id; never send numeric UI id
-    const courseIdToSend =
-      serverCourse?._id?.toString() || course._id?.toString();
-
-    // If it's still missing or looks numeric (not 24 hex chars), warn early
-    if (!courseIdToSend || courseIdToSend.length !== 24) {
-      setLoading(false);
-      console.error("Invalid course id being sent:", course, "courseIdToSend:", courseIdToSend);
-      return alert("Invalid course id. Make sure you are opening the course from the server list.");
-    }
-
-    const res = await axiosClient.post(
-      "/orders/create",
-      { courseId: courseIdToSend },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log("Order created:", res?.data);
-    if (res?.data?.approveLink) {
-      window.location.href = res.data.approveLink;
-    }
+    // Prefer resolved serverCourse, fallback to course from state
+    const courseForCheckout = serverCourse || course;
+    navigate("/checkout", { state: { course: courseForCheckout } });
   } catch (err) {
-    console.error("Failed to create order (frontend):", err);
-    const msg = err?.response?.data?.message || err?.message || "Failed to create order. See console.";
+    console.error("Failed to start checkout:", err);
+    const msg = err?.message || "Unable to open checkout.";
     alert(msg);
   } finally {
     setLoading(false);

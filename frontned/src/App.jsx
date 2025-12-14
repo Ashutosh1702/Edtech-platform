@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import SyllabusPage from "./pages/SyllabusPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/course/:id" element={<CourseDetailPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/syllabus" element={<SyllabusPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
