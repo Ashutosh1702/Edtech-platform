@@ -12,6 +12,19 @@ function CourseCard({ course }) {
     navigate(`/course/${course.id}`, { state: { course } });
   };
 
+  const getImagePosition = () => {
+    const inst = (course.instructor || "").toLowerCase();
+    if (inst.includes("nimisha")) return "center 30%";
+    if (inst.includes("kiranpreet")) return "center 28%";
+    if (inst.includes("alok")) return "center 35%";
+    if (inst.includes("avinash")) return "center 32%";
+    if (inst.includes("ashutosh")) return "center 40%";
+    if (inst.includes("nitya")) return "center 30%";
+    if (inst.includes("saket")) return "center 30%";
+    if (inst.includes("sunidhi")) return "center 30%";
+    return "center 35%"; // sensible default that keeps faces visible
+  };
+
   return (
     <div
       onClick={handleCardClick}
@@ -29,19 +42,11 @@ function CourseCard({ course }) {
         {course.bannerImg ? (
           <img
             src={course.bannerImg}
-            alt={course.title}
-            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out"
+            alt={`${course.title} — ${course.instructor}`}
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
             loading="lazy"
             style={{
-              objectPosition: course.instructor?.includes("Kiranpreet")
-                ? "center top"
-                : course.instructor?.includes("Ashutosh")
-                ? "center 25%"
-                : course.instructor?.includes("Nitya Singh")
-                ? "center top"
-                : course.instructor?.includes("Saket")
-                ? "center top"
-                : "center",
+              objectPosition: getImagePosition(),
               imageRendering: "auto",
               WebkitImageRendering: "-webkit-optimize-contrast",
               backfaceVisibility: "hidden",
@@ -67,7 +72,45 @@ function CourseCard({ course }) {
             {course.banner}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+        {/* Overlay CTA shown on hover/focus to make the card more interactive */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCardClick();
+          }}
+          aria-label={`View ${course.title}`}
+          className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-300"
+        >
+          <span className="bg-white/90 dark:bg-slate-900/90 px-4 py-2 rounded-full text-sm font-medium shadow-md text-slate-900 dark:text-slate-100">
+            View course
+          </span>
+        </button>
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black/18 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+
+        {/* Instructor avatar chip (bottom-left) — clickable and keyboard accessible */}
+        {course.bannerImg && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleInstructorClick(e);
+            }}
+            className="absolute left-4 bottom-4 flex items-center gap-3 bg-white/90 dark:bg-slate-900/90 px-3 py-1 rounded-full shadow-sm hover:scale-105 focus:scale-105 transition-transform duration-200"
+            aria-label={`Open courses by ${course.instructor}`}
+          >
+            <img
+              src={course.bannerImg}
+              alt={`${course.instructor} avatar`}
+              className="h-8 w-8 rounded-full object-cover"
+              style={{ objectPosition: getImagePosition() }}
+              loading="lazy"
+            />
+            <span className="text-sm text-slate-700 dark:text-slate-200 font-medium">
+              {course.instructor.replace(/^by\s+/i, "")}
+            </span>
+          </button>
+        )}
       </div>
       <div className="p-6">
         <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wide">

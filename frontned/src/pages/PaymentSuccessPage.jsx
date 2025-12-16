@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { courseDetails } from "../data/courseDetails";
 
 export default function PaymentSuccessPage() {
   const loc = useLocation();
@@ -26,9 +25,11 @@ export default function PaymentSuccessPage() {
   const currency = urlCurrency || last?.currency || "INR";
 
   const course = last?.course;
+  // Do NOT pull backend/local detail mappings here — prefer the exact course object
+  // that the user selected and that was recorded in the payment payload.
   const details = useMemo(() => {
-    if (!course?.id) return null;
-    return courseDetails[course.id] || null;
+    // Accept course.details if the payment payload included richer info
+    return course?.details || null;
   }, [course]);
 
   return (
@@ -76,12 +77,14 @@ export default function PaymentSuccessPage() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm">{course.instructor}</p>
               </div>
 
-              {details?.description && (
+              {/* Show only description coming from the selected course payload */}
+              {details?.description ? (
                 <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800/40">
                   <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Introduction</h3>
                   <p className="text-slate-700 dark:text-slate-300 text-sm">{details.description}</p>
                 </div>
-              )}
+
+              ) : null}
 
               {details?.learningOutcomes && (
                 <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4">
@@ -159,6 +162,15 @@ export default function PaymentSuccessPage() {
         <div className="mt-8 flex gap-3">
           <button onClick={() => nav("/courses")} className="h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold">Browse Courses</button>
           <button onClick={() => nav("/")} className="h-10 px-4 rounded-lg border border-slate-300 dark:border-slate-700">Go Home</button>
+          {/* Offer an online test option after successful payment — pass the selected course object */}
+          {course && (
+            <button
+              onClick={() => nav('/online-test', { state: { course } })}
+              className="h-10 px-4 rounded-lg border border-emerald-500 text-emerald-600 font-semibold"
+            >
+              Take Online Test
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -71,15 +71,23 @@ function Footer() {
   const navigate = useNavigate();
 
   const handleInstructorClick = (instructorId) => {
-    // Find the course for this instructor
-    const courseMap = {
-      1: 1, 2: 2, 3: 3, 4: 4, 101: 101, 102: 102, 103: 103, 106: 106
+    // Resolve selected instructor and construct a minimal course payload
+    const selected = instructors.find((i) => i.id === instructorId);
+    if (!selected) return;
+
+    const course = {
+      id: selected.id,
+      title: selected.course,
+      instructor: selected.name,
+      bannerImg: selected.image,
+      banner: selected.course,
+      tagline: selected.specialization,
+      rating: 5,
+      reviews: 10,
+      price: 49.99,
     };
-    const courseId = courseMap[instructorId];
-    if (courseId) {
-      // We need to get the course data - for now, navigate to courses page
-      navigate(`/course/${courseId}`);
-    }
+
+    navigate(`/course/${course.id}`, { state: { course } });
   };
 
   return (

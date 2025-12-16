@@ -13,6 +13,19 @@ function CourseDetailPage() {
   const course = state?.course;
   const details = course ? courseDetails[course.id] : null;
 
+  const getImagePosition = () => {
+    const inst = (course?.instructor || "").toLowerCase();
+    if (inst.includes("nimisha")) return "center 40%";
+    if (inst.includes("kiranpreet")) return "center 28%";
+    if (inst.includes("alok")) return "center 35%";
+    if (inst.includes("avinash")) return "center 32%";
+    if (inst.includes("ashutosh")) return "center 40%";
+    if (inst.includes("nitya")) return "center 30%";
+    if (inst.includes("saket")) return "center 30%";
+    if (inst.includes("sunidhi")) return "center 30%";
+    return "center 35%";
+  };
+
   useEffect(() => {
     if (!course) {
       navigate("/courses", { replace: true });
@@ -194,17 +207,35 @@ const handleEnroll = async () => {
         <aside className="lg:col-span-4">
           <div className="sticky top-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
             <div className="h-40 bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
-              {course.bannerImg ? (
-                <img
-                  src={course.bannerImg}
-                  alt={course.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-300 text-sm">
-                  {course.banner}
-                </div>
-              )}
+                {course.bannerImg ? (
+                  <img
+                    src={course.bannerImg}
+                    alt={`${course.title} — ${course.instructor}`}
+                    className="w-full h-full"
+                    style={{ objectFit: "cover", objectPosition: getImagePosition() }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-300 text-sm">
+                    {course.banner}
+                  </div>
+                )}
+                {/* Avatar chip to show instructor face clearly */}
+                {course.bannerImg && (
+                  <div className="absolute left-4 bottom-4 flex items-center gap-3 bg-white/90 dark:bg-slate-900/75 px-3 py-1 rounded-full shadow-sm">
+                    <img
+                      src={course.bannerImg}
+                      alt={`${course.instructor} avatar`}
+                      className="h-10 w-10 rounded-full object-cover"
+                      style={{ objectPosition: getImagePosition() }}
+                    />
+                    <div className="text-sm">
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">
+                        {course.instructor?.replace(/^by\s+/i, "")}
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-300">Instructor</div>
+                    </div>
+                  </div>
+                )}
               <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/60 to-transparent px-4 pt-3 pb-6">
                 <div className="inline-flex items-center gap-2 bg-yellow-400 text-slate-900 text-xs font-semibold px-2.5 py-1 rounded">
                   <span>{course.banner}</span>
