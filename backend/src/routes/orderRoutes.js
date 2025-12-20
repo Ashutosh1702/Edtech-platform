@@ -1,12 +1,18 @@
-const {Router} =require("express")
-const { createOrder, captureOrder, getAllOrders, getSingleOrder } = require("../controllers/orderController")
+const { Router } = require("express");
+const {
+  createOrder,
+  captureOrder,
+  getAllOrders,
+  getSingleOrder,
+} = require("../controllers/orderController");
+const { protect } = require("../middleware/authMiddleware");
 
-const router = Router()
+const router = Router();
 
+router.post("/create", protect, createOrder);
+router.get("/capture", captureOrder);
+router.post("/capture", captureOrder);
+router.get("/all", protect, getAllOrders);
+router.get("/:id", protect, getSingleOrder);
 
-router.post("/create", createOrder)
-router.post("/capture",captureOrder)
-router.get('/all', getAllOrders)
-router.get('/:id', getSingleOrder)
-
-module.exports=router
+module.exports = router;

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axiosClient from "../api/axiosClient";
 
 export default function CheckoutPage() {
   const { state } = useLocation();
@@ -24,6 +25,15 @@ export default function CheckoutPage() {
     return { base, tax, total };
   }, [course]);
 
+  const [checkoutCtx] = useState(() => {
+    try {
+      const raw = localStorage.getItem("edtech_checkout_context");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const mockPay = async () => {
     setProcessing(true);
     setTimeout(() => {
@@ -47,11 +57,51 @@ export default function CheckoutPage() {
         const prev = JSON.parse(localStorage.getItem(historyKey) || "[]");
         prev.push(payload);
         localStorage.setItem(historyKey, JSON.stringify(prev));
-      } catch {}
+      } catch {
+        void 0;
+      }
       navigate(`/payment-success?success=1&orderId=${orderId}&amount=${totals.total}&currency=INR`, {
         replace: true,
       });
     }, 900);
+  };
+
+  const startPayPal = async () => {
+    try {
+      setProcessing(true);
+      const courseId = course?._id;
+      if (!courseId) {
+        throw new Error("This course is not available for PayPal checkout.");
+      }
+      const res = await axiosClient.post("/orders/create", { courseId });
+      const approveLink = res?.data?.approveLink;
+      if (!approveLink) {
+        throw new Error("Failed to start PayPal checkout.");
+      }
+
+      const ctx = {
+        course,
+        localOrderId: res?.data?.localOrderId,
+        orderId: res?.data?.orderId,
+        currency: res?.data?.currency,
+        amount: res?.data?.amount,
+        method: "paypal",
+        ts: Date.now(),
+      };
+      try {
+        localStorage.setItem("edtech_checkout_context", JSON.stringify(ctx));
+      } catch {
+        void 0;
+      }
+
+      window.location.href = approveLink;
+    } catch (e) {
+      const msg =
+        e?.response?.data?.message || e?.message || "Unable to start PayPal.";
+      alert(msg);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (!course) return null;
@@ -71,6 +121,7 @@ export default function CheckoutPage() {
                 {[
                   { id: "upi", label: "UPI" },
                   { id: "card", label: "Card" },
+                  { id: "paypal", label: "PayPal" },
                 ].map((t) => (
                   <button
                     key={t.id}
@@ -127,7 +178,7 @@ export default function CheckoutPage() {
                     <p className="text-sm text-slate-600 dark:text-slate-300">Your payment is processed using an encrypted channel. For demo purposes, we simulate payment confirmation.</p>
                   </div>
                 </div>
-              ) : (
+              ) : tab === "card" ? (
                 <div className="p-5 space-y-4">
                   <div className="grid md:grid-cols-2 gap-3">
                     <input className="h-11 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950" placeholder="Card Number" />
@@ -136,6 +187,17 @@ export default function CheckoutPage() {
                     <input className="h-11 px-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950" placeholder="CVV" />
                   </div>
                   <p className="text-xs text-slate-500">Cards are for demo only. No real charges.</p>
+                </div>
+              ) : (
+                <div className="p-5 space-y-4">
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800/40">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      Pay securely with PayPal
+                    </div>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                      You'll be redirected to PayPal to complete your payment.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -148,11 +210,15 @@ export default function CheckoutPage() {
                 Back
               </button>
               <button
-                onClick={mockPay}
+                onClick={tab === "paypal" ? startPayPal : mockPay}
                 disabled={processing || (tab === "upi" && !vpa.trim())}
                 className="h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow disabled:opacity-60"
               >
-                {processing ? "Processing…" : `Pay ₹${totals.total} & Enroll`}
+                {processing
+                  ? "Processing…"
+                  : tab === "paypal"
+                    ? "Continue to PayPal"
+                    : `Pay ₹${totals.total} & Enroll`}
               </button>
             </div>
           </div>
@@ -175,8 +241,9 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mt-5 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-300">Price</span><span className="font-medium">₹{totals.base.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-300">GST (18%)</span><span className="font-medium">₹{totals.tax.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-300">Order ID</span><span className="font-medium">{checkoutCtx?.localOrderId || "-"}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-300">Amount</span><span className="font-medium">₹{totals.total.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-slate-600 dark:text-slate-300">Method</span><span className="font-medium">{tab ? tab.toUpperCase() : "-"}</span></div>
                 <div className="border-t border-slate-200 dark:border-slate-800 my-2" />
                 <div className="flex justify-between text-base font-semibold"><span>Total</span><span>₹{totals.total.toFixed(2)}</span></div>
               </div>

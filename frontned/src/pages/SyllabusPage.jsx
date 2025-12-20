@@ -176,8 +176,7 @@ function SyllabusPage() {
                       {details.learningOutcomes.map((outcome, index) => (
                         <div
                           key={index}
-                          className="flex items-start gap-3 p-3 bg-
-                          hite dark:bg-slate-900 rounded-lg"
+                          className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg"
                         >
                           <svg
                             className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0"

@@ -2,6 +2,19 @@
 const Course = require("../models/Course");
 const { paypal, paypalClient } = require("../config/paypal");
 const Order = require("../models/Order"); // PayPalOrder model exported from here
+const { URL } = require("url");
+
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || "http://localhost:3000";
+}
+
+function getBackendUrl() {
+  return process.env.BACKEND_URL || "http://localhost:5000";
+}
+
+function getPayPalCurrency() {
+  return process.env.PAYPAL_CURRENCY || "USD";
+}
 
 const createOrder = async (req, res, next) => {
   try {
@@ -24,12 +37,17 @@ const createOrder = async (req, res, next) => {
     }
 
     const courseAmount = course.price; // e.g. 499
-    const currency = "USD"; // Sandbox में ये safe है
+    const currency = getPayPalCurrency();
 
     const client = paypalClient();
 
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
+
+    const backendUrl = getBackendUrl();
+    const frontendUrl = getFrontendUrl();
+    const returnUrl = new URL("/api/orders/capture", backendUrl);
+    returnUrl.searchParams.set("redirect", "1");
 
     request.requestBody({
       intent: "CAPTURE",
@@ -44,8 +62,8 @@ const createOrder = async (req, res, next) => {
         },
       ],
       application_context: {
-        return_url: "http://localhost:5000/api/orders/capture",
-        cancel_url: "http://localhost:3000/paypal-cancel",
+        return_url: returnUrl.toString(),
+        cancel_url: `${frontendUrl}/payment-success?success=0`,
       },
     });
 
@@ -62,7 +80,7 @@ const createOrder = async (req, res, next) => {
     )?.href;
 
     // 🧾 DB में order save
-    await Order.create({
+    const localOrder = await Order.create({
       user: req.user._id, // मान रहा हूँ auth middleware से आया है
       course: course._id,
       paypal_order_id: orderId,
@@ -76,6 +94,7 @@ const createOrder = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
+      localOrderId: localOrder._id,
       orderId,
       approveLink,
       amount: courseAmount,
@@ -175,6 +194,18 @@ const captureOrder = async (req, res, next) => {
       order.amount = Number(amount);
       order.currency = currency;
       await order.save();
+    }
+
+    if (req.method === "GET" && req.query.redirect === "1") {
+      const frontendUrl = getFrontendUrl();
+      const redirectUrl = new URL("/payment-success", frontendUrl);
+      redirectUrl.searchParams.set("status", status || "");
+      redirectUrl.searchParams.set("orderId", orderId || "");
+      redirectUrl.searchParams.set("localOrderId", order._id.toString());
+      if (paypal_capture_id) redirectUrl.searchParams.set("captureId", paypal_capture_id);
+      if (amount != null) redirectUrl.searchParams.set("amount", String(amount));
+      if (currency) redirectUrl.searchParams.set("currency", String(currency));
+      return res.redirect(302, redirectUrl.toString());
     }
 
     return res.status(200).json({

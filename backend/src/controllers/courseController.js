@@ -18,6 +18,27 @@ const getCourses = async (req, res, next) => {
   }
 };
 
+// const getSingleCourse = async (req, res, next) => {
+//   try {
+//     const courseId = req.params.id;
+//     console.log(courseId)
+//     const course = await Course.findById(courseId).populate({     
+//       path: "category",
+//     })
+//     if (!course) {
+//       res.status(404);
+//       return next(new Error("Course not found"));
+//     }
+//     return res.status(200).json({
+//       success: true,
+//       course,
+//     });
+//   } catch (error) {
+//     res.status(500);
+//     return next(new Error("Failed to fetch the course"));
+//   }
+// }
+
 const getCourseBySlug = async (req, res, next) => {
   try {
     const course = await Course.findOne({ slug: req.params.slug }).populate(
@@ -38,7 +59,6 @@ const getCourseBySlug = async (req, res, next) => {
 const getSingleCourse = async (req, res, next) => {
   try {
     const courseId = req.params.id;
-    console.log(courseId)
     const course = await Course.findById(courseId).populate({
       path: "category",
     })
@@ -46,13 +66,9 @@ const getSingleCourse = async (req, res, next) => {
       res.status(404);
       return next(new Error("Course not found"));
     }
-    return res.status(200).json({
-      success: true,
-      course,
-    });
+    return res.status(200).json(course);
   } catch (error) {
-    res.status(500);
-    return next(new Error("Failed to fetch the course"));
+    return next(error);
   }
 }
 
@@ -174,4 +190,4 @@ const seedCourses = async (req, res, next) => {
   }
 };
 
-module.exports = { getCourses, getCourseBySlug, getSingleCourse, addCourse, seedCourses };
+module.exports = { getCourses, getCourseBySlug, getSingleCourse, addCourse, seedCourses,  };

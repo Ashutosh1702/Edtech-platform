@@ -37,7 +37,7 @@ function Hero() {
             </span>
           </span>
 
-          <h1 className="text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
+          <h1 className="hero-title text-5xl md:text-7xl font-extrabold leading-tight tracking-tight">
             <span className="bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
               Learn anything.
             </span>
@@ -58,10 +58,7 @@ function Hero() {
 
           {/* Enhanced CTA buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/courses"
-              className="group relative bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-4 rounded-xl text-base font-bold shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-            >
+            <Link to="/courses" className="btn-primary flex items-center justify-center gap-2">
               <span>Explore courses</span>
               <svg
                 className="w-5 h-5 group-hover:translate-x-1 transition-transform"

@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import nimishaImg from "../assets/nimisha.jpg";
 import kiranpreetImg from "../assets/kiranpreet.jpg";
 import alokImg from "../assets/alok.jpg";
@@ -69,6 +70,27 @@ const instructors = [
 
 function Footer() {
   const navigate = useNavigate();
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterStatus, setNewsletterStatus] = useState("idle");
+
+  const subscribe = () => {
+    const email = newsletterEmail.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setNewsletterStatus("invalid");
+      return;
+    }
+    try {
+      const key = "edtech_leads";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      const next = Array.isArray(prev) ? prev : [];
+      if (!next.includes(email)) next.push(email);
+      localStorage.setItem(key, JSON.stringify(next));
+      setNewsletterStatus("success");
+      setNewsletterEmail("");
+    } catch {
+      setNewsletterStatus("error");
+    }
+  };
 
   const handleInstructorClick = (instructorId) => {
     // Resolve selected instructor and construct a minimal course payload
@@ -160,16 +182,27 @@ function Footer() {
             <p className="font-semibold text-white mb-4">Quick Links</p>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="/" className="text-slate-400 hover:text-white transition-colors">Home</a>
+                <Link to="/" className="text-slate-400 hover:text-white transition-colors">
+                  Home
+                </Link>
               </li>
               <li>
-                <a href="/courses" className="text-slate-400 hover:text-white transition-colors">All Courses</a>
+                <Link to="/courses" className="text-slate-400 hover:text-white transition-colors">
+                  All Courses
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">About Us</a>
+                <Link to="/syllabus" className="text-slate-400 hover:text-white transition-colors">
+                  Syllabus
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-slate-400 hover:text-white transition-colors">Contact Us</a>
+                <a
+                  href="mailto:support@myedtech.example?subject=Support%20Request"
+                  className="text-slate-400 hover:text-white transition-colors"
+                >
+                  Contact Us
+                </a>
               </li>
             </ul>
           </div>
@@ -199,12 +232,34 @@ function Footer() {
             </p>
             <div className="flex flex-col gap-2">
               <input
+                value={newsletterEmail}
+                onChange={(e) => {
+                  setNewsletterEmail(e.target.value);
+                  setNewsletterStatus("idle");
+                }}
                 className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 placeholder="Enter your email"
               />
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              <button
+                type="button"
+                onClick={subscribe}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
                 Subscribe
               </button>
+              {newsletterStatus === "success" ? (
+                <div className="text-xs text-emerald-400">
+                  Subscribed. You’ll get updates in your inbox.
+                </div>
+              ) : newsletterStatus === "invalid" ? (
+                <div className="text-xs text-rose-400">
+                  Enter a valid email address.
+                </div>
+              ) : newsletterStatus === "error" ? (
+                <div className="text-xs text-rose-400">
+                  Something went wrong. Try again.
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

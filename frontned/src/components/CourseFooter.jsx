@@ -8,6 +8,12 @@ function CourseFooter({ course, details }) {
   };
 
   if (!course) return null;
+  const ratingValue = Number.isFinite(Number(course.rating))
+    ? Number(course.rating)
+    : null;
+  const reviewsValue = Number.isFinite(Number(course.reviews))
+    ? Number(course.reviews)
+    : null;
 
   return (
     <footer className="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-300 mt-16">
@@ -20,7 +26,11 @@ function CourseFooter({ course, details }) {
           <div className="max-w-4xl mx-auto">
             <div className="bg-slate-800/50 rounded-xl p-8 hover:bg-slate-800 transition-colors">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-                <div className="flex-shrink-0">
+                <button
+                  type="button"
+                  className="flex-shrink-0"
+                  onClick={handleInstructorClick}
+                >
                   <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-700 hover:border-blue-500 transition-colors">
                     {course.bannerImg ? (
                       <img
@@ -47,7 +57,7 @@ function CourseFooter({ course, details }) {
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
                 <div className="flex-1 text-center md:text-left">
                   <h4 className="text-2xl font-bold text-white mb-2">
                     {course.instructor}
@@ -67,15 +77,24 @@ function CourseFooter({ course, details }) {
                     </p>
                   )}
                   <div className="mt-4 flex items-center justify-center md:justify-start gap-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-500 text-lg">
-                        {"★".repeat(course.rating)}
-                        {"☆".repeat(5 - course.rating)}
-                      </span>
-                      <span className="text-slate-400 text-sm">
-                        ({course.reviews} reviews)
-                      </span>
-                    </div>
+                    {ratingValue != null && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-amber-500 text-lg">
+                          {"★".repeat(Math.max(0, Math.min(5, ratingValue)))}
+                          {"☆".repeat(
+                            Math.max(
+                              0,
+                              5 - Math.max(0, Math.min(5, ratingValue))
+                            )
+                          )}
+                        </span>
+                        {reviewsValue != null && (
+                          <span className="text-slate-400 text-sm">
+                            ({reviewsValue} reviews)
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -100,11 +119,14 @@ function CourseFooter({ course, details }) {
               </li>
               <li className="text-slate-400">
                 <span className="text-slate-300 font-medium">Rating:</span>{" "}
-                {course.rating}/5 ({course.reviews} reviews)
+                {ratingValue != null
+                  ? `${ratingValue}/5`
+                  : "-"}
+                {reviewsValue != null ? ` (${reviewsValue} reviews)` : ""}
               </li>
               <li className="text-slate-400">
-                <span className="text-slate-300 font-medium">Price:</span> $
-                {course.price.toFixed(2)}
+                <span className="text-slate-300 font-medium">Price:</span> ₹
+                {Number(course.price || 0).toFixed(2)}
               </li>
               {course.subtitle && (
                 <li className="text-slate-400">

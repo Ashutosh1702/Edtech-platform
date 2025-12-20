@@ -1,7 +1,21 @@
 import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 
 function CourseCard({ course }) {
   const navigate = useNavigate();
+  const courseKey = useMemo(() => {
+    return String(course?._id || course?.id || course?.slug || course?.title || "");
+  }, [course]);
+
+  const [saved, setSaved] = useState(() => {
+    try {
+      const raw = localStorage.getItem("edtech_wishlist");
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list.includes(courseKey) : false;
+    } catch {
+      return false;
+    }
+  });
 
   const handleCardClick = () => {
     navigate(`/course/${course.id}`, { state: { course } });
@@ -25,10 +39,18 @@ function CourseCard({ course }) {
     return "center 35%"; // sensible default that keeps faces visible
   };
 
+  const ratingValue = Number.isFinite(Number(course?.rating))
+    ? Number(course.rating)
+    : null;
+  const reviewsValue = Number.isFinite(Number(course?.reviews))
+    ? Number(course.reviews)
+    : null;
+  const priceValue = Number(course?.price || 0);
+
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white dark:bg-slate-900 rounded-xl shadow-lg dark:shadow-black/20 border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60"
+      className="card elevate overflow-hidden group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60"
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -111,6 +133,34 @@ function CourseCard({ course }) {
             </span>
           </button>
         )}
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            try {
+              const raw = localStorage.getItem("edtech_wishlist");
+              const list = raw ? JSON.parse(raw) : [];
+              const next = Array.isArray(list) ? list : [];
+              const exists = next.includes(courseKey);
+              const updated = exists
+                ? next.filter((x) => x !== courseKey)
+                : [...next, courseKey];
+              localStorage.setItem("edtech_wishlist", JSON.stringify(updated));
+              setSaved(!exists);
+            } catch {
+              setSaved((v) => !v);
+            }
+          }}
+          aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+          className={`absolute right-4 top-4 h-10 w-10 rounded-full border backdrop-blur-md shadow-sm transition-all ${
+            saved
+              ? "bg-rose-600/90 border-rose-500 text-white"
+              : "bg-white/80 dark:bg-slate-900/70 border-white/40 dark:border-slate-700 text-slate-900 dark:text-slate-100 hover:scale-105"
+          }`}
+        >
+          {saved ? "♥" : "♡"}
+        </button>
       </div>
       <div className="p-6">
         <p className="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2 uppercase tracking-wide">
@@ -133,23 +183,29 @@ function CourseCard({ course }) {
             {course.subtitle}
           </p>
         )}
-        <div className="flex items-center gap-2 mb-5">
-          <div className="flex items-center text-amber-500">
-            <span className="text-base leading-none">
-              {"★".repeat(course.rating)}
-              {"☆".repeat(5 - course.rating)}
-            </span>
+        {ratingValue != null && (
+          <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center text-amber-500">
+              <span className="text-base leading-none">
+                {"★".repeat(Math.max(0, Math.min(5, ratingValue)))}
+                {"☆".repeat(
+                  Math.max(0, 5 - Math.max(0, Math.min(5, ratingValue)))
+                )}
+              </span>
+            </div>
+            {reviewsValue != null && (
+              <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                ({reviewsValue} reviews)
+              </span>
+            )}
           </div>
-          <span className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-            ({course.reviews} reviews)
-          </span>
-        </div>
+        )}
         <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
           <span className="text-slate-400 dark:text-slate-500 text-sm line-through font-medium">
-            ${(course.price * 1.2).toFixed(2)}
+            ₹{(priceValue * 1.2).toFixed(2)}
           </span>
           <span className="text-slate-900 dark:text-slate-100 font-bold text-xl text-blue-600">
-            ${course.price.toFixed(2)}
+            ₹{priceValue.toFixed(2)}
           </span>
         </div>
       </div>

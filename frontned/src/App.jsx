@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthProvider";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import CoursesPage from "./pages/CoursesPage";
@@ -10,13 +10,15 @@ import SyllabusPage from "./pages/SyllabusPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OnlineTestPage from "./pages/OnlineTestPage";
+import ContactButton from "./components/ContactButton";
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-slate-950 text-white">
+        <div className="min-h-screen bg-slate-950 text-white pt-20">
           <Navbar />
+          <ContactButton />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/courses" element={<CoursesPage />} />

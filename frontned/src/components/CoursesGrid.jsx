@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import CourseCard from "./CourseCard";
 import nimishaImg from "../assets/nimisha.jpg";
 import kiranpreetImg from "../assets/kiranpreet.jpg";
@@ -147,16 +147,16 @@ function CoursesGrid() {
   const [atEdges, setAtEdges] = useState({ start: true, end: false });
   const [allowAuto, setAllowAuto] = useState(true);
 
-  const scrollByCards = (dir) => {
+  const scrollByCards = useCallback((dir) => {
     const el = trackRef.current;
     if (!el) return;
     const cardWidth = el.firstChild
       ? el.firstChild.getBoundingClientRect().width
       : 384;
     el.scrollBy({ left: dir * (cardWidth + 24), behavior: "smooth" });
-  };
+  }, []);
 
-  const tick = () => {
+  const tick = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
@@ -165,9 +165,9 @@ function CoursesGrid() {
     } else {
       scrollByCards(1);
     }
-  };
+  }, [scrollByCards]);
 
-  const startAuto = () => {
+  const startAuto = useCallback(() => {
     if (intervalRef.current) return;
     if (!allowAuto) return;
     const prefersReduced =
@@ -176,33 +176,32 @@ function CoursesGrid() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) return;
     intervalRef.current = setInterval(tick, 3000);
-  };
+  }, [allowAuto, tick]);
 
-  const stopAuto = () => {
+  const stopAuto = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     startAuto();
     return () => stopAuto();
-  }, []);
+  }, [startAuto, stopAuto]);
 
-  const updateActiveFromScroll = () => {
+  const updateActiveFromScroll = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
     const first = el.firstChild;
     const cardWidth = first ? first.getBoundingClientRect().width : 384;
-    const gap = 32 - 8; // approx 24px as used in class gap-8
     const step = cardWidth + 24;
     const idx = Math.round(el.scrollLeft / step);
     setActiveIndex(idx);
     const start = el.scrollLeft <= 4;
     const end = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
     setAtEdges({ start, end });
-  };
+  }, []);
 
   useEffect(() => {
     const el = trackRef.current;
@@ -211,7 +210,7 @@ function CoursesGrid() {
     el.addEventListener("scroll", handler, { passive: true });
     updateActiveFromScroll();
     return () => el.removeEventListener("scroll", handler);
-  }, []);
+  }, [updateActiveFromScroll]);
 
   const goToIndex = (i) => {
     const el = trackRef.current;

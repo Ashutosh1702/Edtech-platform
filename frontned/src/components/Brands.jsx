@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 function Brands() {
   const trackRef = useRef(null);
@@ -100,7 +100,7 @@ function Brands() {
   // Duplicate companies for seamless loop
   const duplicatedCompanies = [...companies, ...companies, ...companies];
 
-  const scroll = () => {
+  const scroll = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
 
@@ -111,24 +111,24 @@ function Brands() {
     if (el.scrollLeft >= el.scrollWidth / 3) {
       el.scrollLeft = 0;
     }
-  };
+  }, []);
 
-  const startAutoScroll = () => {
+  const startAutoScroll = useCallback(() => {
     if (intervalRef.current) return;
     intervalRef.current = setInterval(scroll, 2000); // Scroll every 2 seconds
-  };
+  }, [scroll]);
 
-  const stopAutoScroll = () => {
+  const stopAutoScroll = useCallback(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     startAutoScroll();
     return () => stopAutoScroll();
-  }, []);
+  }, [startAutoScroll, stopAutoScroll]);
 
   return (
     <section className="bg-gradient-to-b from-white to-slate-50 text-slate-700 py-16">

@@ -4,8 +4,8 @@ const { getCourses, getCourseBySlug, getSingleCourse, addCourse, seedCourses } =
 const router = express.Router();
 
 router.get('/', getCourses);
-router.get('/:slug', getCourseBySlug);
-router.get("/single/:id", getSingleCourse)
+router.get('/slug/:slug', getCourseBySlug);
+router.get('/:id', getSingleCourse);
 
 router.post("/add", addCourse)
 

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { courseDetails } from "../data/courseDetails";
 import CourseFooter from "../components/CourseFooter";
-import CheckoutModal from "../components/CheckoutModal";
 import axiosClient from "../api/axiosClient";
 
 function CourseDetailPage() {
@@ -49,7 +48,7 @@ function CourseDetailPage() {
           ?.replace(/\s+/g, '-')
           ?.replace(/[^a-z0-9-]/g, '');
         if (!slug) return;
-        const res = await axiosClient.get(`/courses/${slug}`);
+        const res = await axiosClient.get(`/courses/slug/${slug}`);
         if (res?.data?._id) {
           setServerCourse(res.data);
         }
@@ -84,6 +83,12 @@ const handleEnroll = async () => {
 
 
   if (!course) return null;
+  const ratingValue = Number.isFinite(Number(course.rating))
+    ? Number(course.rating)
+    : null;
+  const reviewsValue = Number.isFinite(Number(course.reviews))
+    ? Number(course.reviews)
+    : null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
@@ -249,19 +254,23 @@ const handleEnroll = async () => {
               <div className="text-rose-600 text-xs font-semibold">
                 5 days left at this price!
               </div>
-              <div className="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <span>
-                  {"★".repeat(course.rating)}
-                  {"☆".repeat(5 - course.rating)}
-                </span>
-                <span>({course.reviews} ratings)</span>
-              </div>
+              {ratingValue != null && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <span>
+                    {"★".repeat(Math.max(0, Math.min(5, ratingValue)))}
+                    {"☆".repeat(
+                      Math.max(0, 5 - Math.max(0, Math.min(5, ratingValue)))
+                    )}
+                  </span>
+                  {reviewsValue != null && <span>({reviewsValue} ratings)</span>}
+                </div>
+              )}
               <div className="mt-3 flex items-baseline gap-2">
                 <span className="text-slate-400 dark:text-slate-500 line-through">
-                  ${(course.price * 1.2).toFixed(2)}
+                  ₹{(Number(course.price || 0) * 1.2).toFixed(2)}
                 </span>
                 <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                  ${course.price.toFixed(2)}
+                  ₹{Number(course.price || 0).toFixed(2)}
                 </span>
                 <span className="text-emerald-600 text-sm font-semibold">
                   20% off

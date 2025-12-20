@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext.js";
 
 export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
   const { user } = useAuth();
@@ -9,14 +9,6 @@ export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
   const [method, setMethod] = useState("upi");
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      setCoupon("");
-      setMethod("upi");
-      setProcessing(false);
-    }
-  }, [open]);
-
   if (!open || !course) return null;
 
   const base = course.price;
@@ -24,6 +16,13 @@ export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
   const subtotal = Math.max(0, base - discount);
   const tax = +(subtotal * 0.18).toFixed(2); // 18% GST as example
   const total = +(subtotal + tax).toFixed(2);
+
+  const handleClose = () => {
+    setCoupon("");
+    setMethod("upi");
+    setProcessing(false);
+    onClose?.();
+  };
 
   const handleConfirm = async () => {
     if (!user) return;
@@ -36,7 +35,7 @@ export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
       localStorage.setItem(key, JSON.stringify(existing));
       setTimeout(() => {
         setProcessing(false);
-        onClose();
+        handleClose();
         onEnrolled?.();
         navigate(`/syllabus`, { state: { course } });
       }, 800);
@@ -49,7 +48,7 @@ export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" aria-modal="true" role="dialog">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
       <div className="relative w-full max-w-2xl rounded-xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
         <div className="grid md:grid-cols-2">
           <div className="p-5 md:p-6 border-r border-slate-200 dark:border-slate-800">
@@ -149,7 +148,7 @@ export default function CheckoutModal({ open, onClose, course, onEnrolled }) {
 
         <button
           aria-label="Close"
-          onClick={onClose}
+          onClick={handleClose}
           className="absolute top-3 right-3 h-8 w-8 inline-flex items-center justify-center rounded-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-white"
         >
           ×
